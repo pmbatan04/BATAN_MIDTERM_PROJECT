@@ -10,12 +10,26 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $products = Product::latest()->get();
+        $query = Product::with('category');
+
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%")
+                    ->orWhere('price', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        if ($request->filled('category_filter') && $request->category_filter != '') {
+            $query->where('category_id', $request->category_filter);
+        }
+
+        $products = $query->latest()->get();
         $categories = Category::all();
         $categoryId = $request->category_id;
-        $products = Product::when($categoryId, function ($query) use ($categoryId) {
-        $query->where('category_id', $categoryId);})->get();
-        $total = $products->sum('price');
+        $product = Product::when($categoryId, function ($queries) use ($categoryId) {
+        $queries->where('category_id', $categoryId);})->get();
+        $total = $product->sum('price');
 
         return view('dashboard', compact('products', 'categories', 'total', 'categoryId'));
     }

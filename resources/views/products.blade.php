@@ -21,7 +21,7 @@
                 <div class="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">Record New Inventory Item</h2>
 
-                    <form action="{{ route('products.store') }}" method="POST" class="grid gap-4 md:grid-cols-4">
+                    <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" class="grid gap-4 md:grid-cols-4">
                         @csrf
 
                         <div class="md:col-span-2">
@@ -69,6 +69,36 @@
                             @enderror
                         </div>
 
+                        <!-- Product Image Upload -->
+                        <div class="md:col-span-2">
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Product Image (Optional)
+                            </label>
+
+                            <input
+                                type="file"
+                                name="photo"
+                                accept="image/jpeg,image/png,image/jpg"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm
+                                    file:mr-4 file:rounded-md file:border-0
+                                    file:bg-indigo-50 file:px-4 file:py-2
+                                    file:text-sm file:font-medium file:text-indigo-700
+                                    hover:file:bg-indigo-100
+                                    dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100
+                                    dark:file:bg-indigo-900/30 dark:file:text-indigo-400"
+                            >
+
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                JPG, PNG, or JPEG. Max size 2MB.
+                            </p>
+
+                            @error('photo')
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
                         <div class="md:col-span-4 mt-2">
                             <button type="submit" class="rounded-lg bg-indigo-600 px-8 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-md shadow-indigo-500/20">
                                 Add Item to Inventory
@@ -76,6 +106,107 @@
                         </div>
                     </form>
                 </div>
+
+                <div class="rounded-xl border border-gray-200 bg-gradient-to-b from-gray-50 via-white to-gray-100 p-6
+            dark:border-gray-700 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+
+            {{-- Header + Export --}}
+            <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        Search & Filter Products
+                    </h2>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                        Find products by name or category
+                    </p>
+                </div>
+
+                <form method="GET" action="{{ route('products.export') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <input type="hidden" name="category_filter" value="{{ request('category_filter') }}">
+
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-lg
+                            bg-indigo-600 px-4 py-2 text-sm font-medium text-white
+                            transition hover:bg-indigo-700
+                            focus:ring-2 focus:ring-indigo-500/40">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Export PDF
+                    </button>
+                </form>
+            </div>
+
+            {{-- Filters --}}
+            <form action="{{ route('products.index') }}" method="GET" enctype="multipart/form-data"
+                class="grid gap-4 md:grid-cols-3">
+
+                {{-- Search --}}
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Search Product
+                    </label>
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ request('search') }}"
+                        placeholder="Search by product name"
+                        class="w-full rounded-lg border border-gray-300 bg-white
+                            px-4 py-2 text-sm text-gray-900 placeholder-gray-400
+                            focus:border-indigo-500 focus:outline-none
+                            focus:ring-2 focus:ring-indigo-500/30
+                            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                    >
+                </div>
+
+                {{-- Category --}}
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Filter by Category
+                    </label>
+                    <select
+                        name="category_filter"
+                        class="w-full rounded-lg border border-gray-300 bg-white
+                            px-4 py-2 text-sm text-gray-900
+                            focus:border-indigo-500 focus:outline-none
+                            focus:ring-2 focus:ring-indigo-500/30
+                            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                    >
+                        <option value="">All Categories</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}"
+                                {{ request('category_filter') == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Actions --}}
+                <div class="flex items-end gap-2">
+                    <button
+                        type="submit"
+                        class="flex-1 rounded-lg bg-indigo-600 px-4 py-2
+                            text-sm font-medium text-white
+                            transition hover:bg-indigo-700
+                            focus:ring-2 focus:ring-indigo-500/40">
+                        Apply
+                    </button>
+
+                    <a
+                        href="{{ route('products.index') }}"
+                        class="rounded-lg border border-gray-300 px-4 py-2
+                            text-sm font-medium text-gray-700
+                            transition hover:bg-gray-100
+                            dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                        Clear
+                    </a>
+                </div>
+
+            </form>
+        </div>
 
                 {{-- Product List Table --}}
                 <div class="flex-1 overflow-auto">
@@ -85,6 +216,7 @@
                             <thead>
                                 <tr class="bg-gray-100 dark:bg-gray-800/70">
                                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">#</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">Photo</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">Item Name / SKU</th>
                                     <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">Category</th>
                                     <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">Cost/Unit</th>
@@ -97,6 +229,25 @@
                                 @forelse($products as $prod)
                                     <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50" id="room-row-{{ $prod->id }}">
                                         <td class="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-gray-100">{{ $loop->iteration }}</td>
+                                        <td class="px-4 py-3">
+                                            @if($prod->photo)
+                                                <img
+                                                    src="{{ Storage::url($prod->photo) }}"
+                                                    alt="{{ $prod->name }}"
+                                                    class="h-12 w-12 rounded-full object-cover
+                                                        ring-2 ring-indigo-500/40"
+                                                >
+                                            @else
+                                                <div
+                                                    class="flex h-12 w-12 items-center justify-center rounded-full
+                                                        bg-indigo-100 text-sm font-semibold text-indigo-700
+                                                        ring-2 ring-indigo-300
+                                                        dark:bg-indigo-900/40 dark:text-indigo-300 dark:ring-indigo-700"
+                                                >
+                                                    {{ strtoupper(substr($prod->name, 0, 2)) }}
+                                                </div>
+                                            @endif
+                                        </td>
                                         <td class="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-gray-100">{{ $prod->name }}</td>
                                         <td class="px-4 py-3 text-center text-sm text-gray-700 dark:text-gray-300">{{ $prod->category ? $prod->category->name : 'N/A' }}</td>
                                         <td class="px-4 py-3 text-center text-sm text-gray-700 dark:text-gray-300">₱{{ number_format($prod->price, 2) }}</td>
@@ -109,12 +260,13 @@
                                                 '{{ $prod->category_id }}',
                                                 '{{ $prod->price }}',
                                                 '{{ $prod->unit }}',
-                                                '{{ addslashes($prod->description) }}'
+                                                '{{ addslashes($prod->description) }}',
+                                                '{{ $prod->photo }}'
                                             );" class="text-indigo-600 transition-colors hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">
                                                 Edit Stock
                                             </button>
                                             <span class="mx-1 text-gray-400">|</span>
-                                            <form action="{{ route('products.destroy', $prod->id) }}" method="POST" class="inline" onsubmit="return confirm('WARNING: Deleting this item will remove it permanently from inventory. Are you sure?')">
+                                            <form action="{{ route('products.destroy', $prod->id) }}" method="POST" class="inline" onsubmit="return confirm('Do you want to transfer this to trash?')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600 transition-colors hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium">Remove</button>
@@ -141,7 +293,7 @@
         <div class="w-full max-w-xl rounded-xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-700 dark:bg-gray-800">
             <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">Update Inventory Item</h2>
 
-            <form id="editProductForm" method="POST">
+            <form id="editProductForm" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -171,6 +323,28 @@
                         <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description / Notes</label>
                         <textarea id="edit_description" name="description" rows="3" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"></textarea>
                     </div>
+                    <!-- Current Product Image Preview -->
+                    <div id="currentPhotoPreview" class="mb-3"></div>
+
+                    <input
+                        type="file"
+                        id="edit_photo"
+                        name="photo"
+                        accept="image/jpeg,image/png,image/jpg"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700
+                            file:mr-4 file:rounded-md file:border-0
+                            file:bg-indigo-50 file:px-4 file:py-2
+                            file:text-sm file:font-medium file:text-indigo-700
+                            hover:file:bg-indigo-100
+                            focus:border-indigo-500 focus:outline-none
+                            focus:ring-2 focus:ring-indigo-500/30
+                            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200
+                            dark:file:bg-indigo-900/30 dark:file:text-indigo-400"
+                    />
+
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Leave empty to keep current product image. JPG, PNG, or JPEG. Max 2MB.
+                    </p>
                     <div class="md:col-span-2 mt-4 flex justify-end gap-3">
                         <button type="button" onclick="closeEditModal()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                             Cancel
@@ -185,7 +359,7 @@
     </div>
 
     <script>
-        function editProduct(id, name, category_id, price, unit, description) {
+        function editProduct(id, name, category_id, price, unit, description, photo) {
             document.getElementById('editProductModal').classList.remove('hidden');
             document.getElementById('editProductModal').classList.add('flex');
             // Update the form action dynamically
@@ -195,6 +369,25 @@
             document.getElementById('edit_price').value = price;
             document.getElementById('edit_unit').value = unit;
             document.getElementById('edit_description').value = description || '';
+
+            const photoPreview = document.getElementById('currentPhotoPreview');
+            if (photo) {
+                photoPreview.innerHTML = `
+                    <div class="flex items-center gap-3 rounded-lg border border-neutral-200 p-3 dark:border-neutral-700">
+                        <img src="/storage/${photo}" alt="${name}" class="h-16 w-16 rounded-full object-cover">
+                        <div>
+                            <p class="text-sm font-medium text-neutral-700 dark:text-neutral-300">Current Photo</p>
+                            <p class="text-xs text-neutral-500 dark:text-neutral-400">Upload new photo to replace</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                photoPreview.innerHTML = `
+                    <div class="rounded-lg border border-dashed border-neutral-300 p-4 text-center dark:border-neutral-600">
+                        <p class="text-sm text-neutral-500 dark:text-neutral-400">No photo uploaded</p>
+                    </div>
+                `;
+            }
         }
 
         function closeEditModal() {
